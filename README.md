@@ -701,3 +701,200 @@ WHERE id_departamento in (2, 4, 5);
 +--------+-----------+-----------+-----------+
 ```
 
+### Consultas multitabla (Composición interna)
+
+1. #### Devuelve un listado con los empleados y los datos de los departamentos donde trabaja cada uno.
+
+```sql
+SELECT m.nombre, m.apellido1, m.apellido2, d.id, m.id_departamento, d.nombre
+FROM empleado as m
+INNER JOIN departamento AS d ON d.id = m.id_departamento;
+
++--------+-----------+-----------+----+-----------------+------------------+
+| nombre | apellido1 | apellido2 | id | id_departamento | nombre           |
++--------+-----------+-----------+----+-----------------+------------------+
+| Aarón  | Rivero    | Gómez     |  1 |               1 | Desarrollo       |
+| María  | Santana   | Moreno    |  1 |               1 | Desarrollo       |
+| Marta  | Herrera   | Gil       |  1 |               1 | Desarrollo       |
+| Adela  | Salas     | Díaz      |  2 |               2 | Sistemas         |
+| Pilar  | Ruiz      | NULL      |  2 |               2 | Sistemas         |
+| Juan   | Gómez     | López     |  2 |               2 | Sistemas         |
+| Adolfo | Rubio     | Flores    |  3 |               3 | Recursos Humanos |
+| Pepe   | Ruiz      | Santana   |  3 |               3 | Recursos Humanos |
+| Adrián | Suárez    | NULL      |  4 |               4 | Contabilidad     |
+| Marcos | Loyola    | Méndez    |  5 |               5 | I+D              |
+| Diego  | Flores    | Salas     |  5 |               5 | I+D              |
++--------+-----------+-----------+----+-----------------+------------------+
+```
+
+2. #### Devuelve un listado con los empleados y los datos de los departamentos donde trabaja cada uno. Ordena el resultado, en primer lugar por el nombre
+del departamento (en orden alfabético) y en segundo lugar por los apellidos
+y el nombre de los empleados.
+
+```sql
+SELECT d.nombre AS departamento, m.nombre, m.apellido1, m.apellido2
+FROM empleado AS m
+INNER JOIN departamento AS d ON m.id_departamento = d.id
+ORDER BY d.nombre ASC, m.apellido1 ASC, m.apellido2 ASC, m.nombre ASC;
+
++------------------+--------+-----------+-----------+
+| departamento     | nombre | apellido1 | apellido2 |
++------------------+--------+-----------+-----------+
+| Contabilidad     | Adrián | Suárez    | NULL      |
+| Desarrollo       | Marta  | Herrera   | Gil       |
+| Desarrollo       | Aarón  | Rivero    | Gómez     |
+| Desarrollo       | María  | Santana   | Moreno    |
+| I+D              | Diego  | Flores    | Salas     |
+| I+D              | Marcos | Loyola    | Méndez    |
+| Recursos Humanos | Adolfo | Rubio     | Flores    |
+| Recursos Humanos | Pepe   | Ruiz      | Santana   |
+| Sistemas         | Juan   | Gómez     | López     |
+| Sistemas         | Pilar  | Ruiz      | NULL      |
+| Sistemas         | Adela  | Salas     | Díaz      |
++------------------+--------+-----------+-----------+
+```
+
+3. #### Devuelve un listado con el identificador y el nombre del departamento, solamente de aquellos departamentos que tienen empleados.
+
+```sql
+SELECT DISTINCT d.id, d.nombre
+FROM departamento AS d
+INNER JOIN empleado AS m ON d.id = m.id_departamento;
+
++----+------------------+
+| id | nombre           |
++----+------------------+
+|  1 | Desarrollo       |
+|  2 | Sistemas         |
+|  3 | Recursos Humanos |
+|  4 | Contabilidad     |
+|  5 | I+D              |
++----+------------------+
+```
+
+4. #### Devuelve un listado con el identificador, el nombre del departamento y el valor del presupuesto actual del que dispone, solamente de aquellos
+departamentos que tienen empleados. El valor del presupuesto actual lo
+puede calcular restando al valor del presupuesto inicial
+(columna presupuesto) el valor de los gastos que ha generado
+(columna gastos).
+
+```sql
+SELECT DISTINCT d.id, d.nombre, (d.presupuesto-d.gastos) AS presupuesto_actual
+FROM departamento AS d
+INNER JOIN empleado AS m ON d.id = m.id_departamento;
+
++----+------------------+--------------------+
+| id | nombre           | presupuesto_actual |
++----+------------------+--------------------+
+|  1 | Desarrollo       |             114000 |
+|  2 | Sistemas         |             129000 |
+|  3 | Recursos Humanos |             255000 |
+|  4 | Contabilidad     |             107000 |
+|  5 | I+D              |              -5000 |
++----+------------------+--------------------+
+```
+
+5. #### Devuelve el nombre del departamento donde trabaja el empleado que tiene el nif 38382980M.
+
+```sql
+SELECT d.nombre
+FROM empleado AS m
+INNER JOIN departamento AS d ON m.id_departamento = d.id
+WHERE m.nif = '38382980M';
+
++------------+
+| nombre     |
++------------+
+| Desarrollo |
++------------+
+```
+
+6. #### Devuelve el nombre del departamento donde trabaja el empleado Pepe Ruiz Santana.
+
+```sql
+SELECT d.nombre
+FROM departamento AS d
+INNER JOIN empleado AS m ON m.id_departamento = d.id
+WHERE m.nombre = 'Pepe' AND m.apellido1 = 'Ruiz' AND m.apellido2 = 'Santana';
+
++------------------+
+| nombre           |
++------------------+
+| Recursos Humanos |
++------------------+
+```
+
+7. #### Devuelve un listado con los datos de los empleados que trabajan en el departamento de I+D. Ordena el resultado alfabéticamente.
+
+```sql
+SELECT m.id, m.nif, m.nombre, m.apellido1, m.apellido2, d.nombre
+FROM empleado AS m
+INNER JOIN departamento AS d ON d.id = m.id_departamento
+WHERE d.nombre = 'I+D'
+ORDER BY m.nombre ASC;
+
++----+-----------+--------+-----------+-----------+--------+
+| id | nif       | nombre | apellido1 | apellido2 | nombre |
++----+-----------+--------+-----------+-----------+--------+
+| 10 | 46384486H | Diego  | Flores    | Salas     | I+D    |
+|  5 | 17087203C | Marcos | Loyola    | Méndez    | I+D    |
++----+-----------+--------+-----------+-----------+--------+
+```
+
+8. #### Devuelve un listado con los datos de los empleados que trabajan en el departamento de Sistemas, Contabilidad o I+D. Ordena el resultado
+alfabéticamente.
+
+```sql
+SELECT m.id, m.nif, m.nombre, m.apellido1, m.apellido2, d.nombre
+FROM empleado AS m
+INNER JOIN departamento AS d ON d.id = m.id_departamento
+WHERE d.nombre IN ('Sistemas', 'Contabilidad', 'I+D')
+ORDER BY m.nombre ASC;
+
++----+-----------+--------+-----------+-----------+--------------+
+| id | nif       | nombre | apellido1 | apellido2 | nombre       |
++----+-----------+--------+-----------+-----------+--------------+
+|  2 | Y5575632D | Adela  | Salas     | Díaz      | Sistemas     |
+|  4 | 77705545E | Adrián | Suárez    | NULL      | Contabilidad |
+| 10 | 46384486H | Diego  | Flores    | Salas     | I+D          |
+|  9 | 56399183D | Juan   | Gómez     | López     | Sistemas     |
+|  5 | 17087203C | Marcos | Loyola    | Méndez    | I+D          |
+|  7 | 80576669X | Pilar  | Ruiz      | NULL      | Sistemas     |
++----+-----------+--------+-----------+-----------+--------------+
+```
+
+9. #### Devuelve una lista con el nombre de los empleados que tienen los departamentos que no tienen un presupuesto entre 100000 y 200000 euros.
+
+```sql
+SELECT m.id, m.nif, m.nombre, m.apellido1, m.apellido2, d.nombre
+FROM empleado AS m
+INNER JOIN departamento AS d ON d.id = m.id_departamento
+WHERE d.presupuesto NOT BETWEEN 100000 AND 200000;
+
++----+-----------+--------+-----------+-----------+------------------+
+| id | nif       | nombre | apellido1 | apellido2 | nombre           |
++----+-----------+--------+-----------+-----------+------------------+
+|  3 | R6970642B | Adolfo | Rubio     | Flores    | Recursos Humanos |
+|  8 | 71651431Z | Pepe   | Ruiz      | Santana   | Recursos Humanos |
+|  5 | 17087203C | Marcos | Loyola    | Méndez    | I+D              |
+| 10 | 46384486H | Diego  | Flores    | Salas     | I+D              |
++----+-----------+--------+-----------+-----------+------------------+
+```
+
+10. #### Devuelve un listado con el nombre de los departamentos donde existe algún empleado cuyo segundo apellido sea NULL. Tenga en cuenta que no
+debe mostrar nombres de departamentos que estén repetidos.
+
+```sql
+SELECT DISTINCT d.nombre
+FROM departamento AS d
+INNER JOIN empleado As m ON d.id = m.id_departamento
+WHERE m.apellido2 IS NULL;
+
++--------------+
+| nombre       |
++--------------+
+| Sistemas     |
+| Contabilidad |
++--------------+
+```
+
