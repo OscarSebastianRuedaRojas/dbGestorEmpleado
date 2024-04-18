@@ -898,3 +898,128 @@ WHERE m.apellido2 IS NULL;
 +--------------+
 ```
 
+### Consultas multitabla (Composición externa)
+
+1. #### Devuelve un listado con todos los empleados junto con los datos de los departamentos donde trabajan. Este listado también debe incluir los
+empleados que no tienen ningún departamento asociado.
+
+```sql
+SELECT m.nombre, m.apellido1, m.apellido2, d.nombre
+FROM empleado as m
+LEFT JOIN departamento AS d ON m.id_departamento = d.id;
+
++--------------+-----------+-----------+------------------+
+| nombre       | apellido1 | apellido2 | nombre           |
++--------------+-----------+-----------+------------------+
+| Aarón        | Rivero    | Gómez     | Desarrollo       |
+| Adela        | Salas     | Díaz      | Sistemas         |
+| Adolfo       | Rubio     | Flores    | Recursos Humanos |
+| Adrián       | Suárez    | NULL      | Contabilidad     |
+| Marcos       | Loyola    | Méndez    | I+D              |
+| María        | Santana   | Moreno    | Desarrollo       |
+| Pilar        | Ruiz      | NULL      | Sistemas         |
+| Pepe         | Ruiz      | Santana   | Recursos Humanos |
+| Juan         | Gómez     | López     | Sistemas         |
+| Diego        | Flores    | Salas     | I+D              |
+| Marta        | Herrera   | Gil       | Desarrollo       |
+| Irene        | Salas     | Flores    | NULL             |
+| Juan Antonio | Sáez      | Guerrero  | NULL             |
++--------------+-----------+-----------+------------------+
+```
+
+2. #### Devuelve un listado donde sólo aparezcan aquellos empleados que no tienen ningún departamento asociado.
+
+```sql
+SELECT m.nombre, m.apellido1, m.apellido2, d.nombre
+FROM empleado AS m
+LEFT JOIN departamento AS d On m.id_departamento = d.id
+WHERE m.id_departamento IS NULL;
+
++--------------+-----------+-----------+--------+
+| nombre       | apellido1 | apellido2 | nombre |
++--------------+-----------+-----------+--------+
+| Irene        | Salas     | Flores    | NULL   |
+| Juan Antonio | Sáez      | Guerrero  | NULL   |
++--------------+-----------+-----------+--------+
+```
+
+3. #### Devuelve un listado donde sólo aparezcan aquellos departamentos que no tienen ningún empleado asociado.
+
+```sql
+SELECT d.nombre
+FROM departamento AS d
+LEFT JOIN empleado AS m ON d.id = m.id_departamento
+WHERE m.id_departamento IS NULL;
+
++------------+
+| nombre     |
++------------+
+| Proyectos  |
+| Publicidad |
++------------+
+
+```
+
+4. #### Devuelve un listado con todos los empleados junto con los datos de los departamentos donde trabajan. El listado debe incluir los empleados que no
+tienen ningún departamento asociado y los departamentos que no tienen
+ningún empleado asociado. Ordene el listado alfabéticamente por el
+nombre del departamento.
+
+```sql
+SELECT m.id, m.nif, m.nombre, m.apellido1, m.apellido2, d.nombre AS nombre_departamento
+FROM empleado AS m
+LEFT JOIN departamento AS d ON m.id_departamento = d.id
+UNION ALL
+SELECT m.id, m.nif, m.nombre, m.apellido1, m.apellido2, d.nombre AS nombre_departamento
+FROM departamento AS d
+LEFT JOIN empleado AS m ON d.id = m.id_departamento
+WHERE m.id_departamento IS NULL
+ORDER BY nombre_departamento ASC;
+
++------+-----------+--------------+-----------+-----------+---------------------+
+| id   | nif       | nombre       | apellido1 | apellido2 | nombre_departamento |
++------+-----------+--------------+-----------+-----------+---------------------+
+|   13 | 82635162B | Juan Antonio | Sáez      | Guerrero  | NULL                |
+|   12 | 41234836R | Irene        | Salas     | Flores    | NULL                |
+|    4 | 77705545E | Adrián       | Suárez    | NULL      | Contabilidad        |
+|   11 | 67389283A | Marta        | Herrera   | Gil       | Desarrollo          |
+|    1 | 32481596F | Aarón        | Rivero    | Gómez     | Desarrollo          |
+|    6 | 38382980M | María        | Santana   | Moreno    | Desarrollo          |
+|    5 | 17087203C | Marcos       | Loyola    | Méndez    | I+D                 |
+|   10 | 46384486H | Diego        | Flores    | Salas     | I+D                 |
+| NULL | NULL      | NULL         | NULL      | NULL      | Proyectos           |
+| NULL | NULL      | NULL         | NULL      | NULL      | Publicidad          |
+|    3 | R6970642B | Adolfo       | Rubio     | Flores    | Recursos Humanos    |
+|    8 | 71651431Z | Pepe         | Ruiz      | Santana   | Recursos Humanos    |
+|    2 | Y5575632D | Adela        | Salas     | Díaz      | Sistemas            |
+|    9 | 56399183D | Juan         | Gómez     | López     | Sistemas            |
+|    7 | 80576669X | Pilar        | Ruiz      | NULL      | Sistemas            |
++------+-----------+--------------+-----------+-----------+---------------------+
+
+```
+
+5. #### Devuelve un listado con los empleados que no tienen ningún departamento asociado y los departamentos que no tienen ningún empleado asociado.
+Ordene el listado alfabéticamente por el nombre del departamento.
+
+```sql
+SELECT m.id, m.nif, m.nombre, m.apellido1, m.apellido2, d.nombre AS nombre_departamento
+FROM empleado AS m
+LEFT JOIN departamento as d ON m.id_departamento = d.id
+WHERE m.id_departamento IS NULL
+UNION ALL
+SELECT m.id, m.nif, m.nombre, m.apellido1, m.apellido2, d.nombre AS nombre_departamento
+FROM departamento AS d
+LEFT JOIN empleado as m ON d.id = m.id_departamento
+WHERE m.id_departamento IS NULL
+ORDER BY nombre_departamento ASC;
+
++------+-----------+--------------+-----------+-----------+---------------------+
+| id   | nif       | nombre       | apellido1 | apellido2 | nombre_departamento |
++------+-----------+--------------+-----------+-----------+---------------------+
+|   13 | 82635162B | Juan Antonio | Sáez      | Guerrero  | NULL                |
+|   12 | 41234836R | Irene        | Salas     | Flores    | NULL                |
+| NULL | NULL      | NULL         | NULL      | NULL      | Proyectos           |
+| NULL | NULL      | NULL         | NULL      | NULL      | Publicidad          |
++------+-----------+--------------+-----------+-----------+---------------------+
+```
+
